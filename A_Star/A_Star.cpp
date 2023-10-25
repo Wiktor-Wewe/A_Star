@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cstdio>
+#include <time.h>
 
 #include "Node.h"
 #include "SelfSortingQueue.h"
@@ -113,26 +114,62 @@ std::vector<Node::Position> astar(std::vector<std::vector<int>>& maze, Node::Pos
     return {};
 }
 
-void showPath(std::vector<Node::Position>& path, std::vector<std::vector<int>> maze) 
+void showPath(std::vector<Node::Position>& path, std::vector<std::vector<int>> maze, Node::Position start, Node::Position end) 
 {
     for (auto p : path) {
         maze[p.x][p.y] = 9;
     }
 
-    for (auto y : maze) {
-        for (auto x : y) {
-            if (x == 0) {
-                printf("\x1b[47m  \x1b[0m");
+    printf(" ");
+    for (int i = 0; i < maze[0].size(); i++) {
+        if (i < 10) printf(" ");
+        if (i == 10) printf(" ");
+        printf("%i ", i);
+    }
+    printf("\n");
+
+    for (int x = 0; x < maze.size(); x++) {
+        if (x < 10) printf(" ");
+        printf("%i", x);
+        for (int y = 0; y < maze[x].size(); y++) {
+            if (start.x == x && start.y == y) {
+                printf("\x1b[43m  \x1b[0m ");
             }
-            else if (x == 5) {
-                printf("\x1b[41m  \x1b[0m");
+            else if (end.x == x && end.y == y) {
+                printf("\x1b[45m  \x1b[0m ");
             }
-            else if (x == 9) {
-                printf("\x1b[44m  \x1b[0m");
+            else if (maze[x][y] == 0) {
+                printf("\x1b[47m  \x1b[0m ");
+            }
+            else if (maze[x][y] == 5) {
+                printf("\x1b[41m  \x1b[0m ");
+            }
+            else if (maze[x][y] == 9) {
+                printf("\x1b[44m  \x1b[0m ");
             }
         }
         printf("\n");
     }
+}
+
+bool isPosistionPossible(Node::Position position, std::vector<std::vector<int>>& maze)
+{
+    if (maze[position.x][position.y] == 5) {
+        return false;
+    }
+    return true;
+}
+
+Node::Position randPosition(std::vector<std::vector<int>>& maze)
+{
+    auto position = Node::Position(rand() % 20, rand() % 20);
+
+    while (isPosistionPossible(position, maze) == false) {
+        position.x = rand() % 20;
+        position.y = rand() % 20;
+    }
+
+    return position;
 }
 
 int main(int argc, char* argv[])
@@ -142,6 +179,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    srand(time(0));
     auto maze = loadMazeFromFile(argv[1]);
 
     if (maze.empty()) {
@@ -149,10 +187,23 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    auto start = Node::Position(0, 0);
-    auto end = Node::Position(19, 19);
+    bool close = false;
+    char input = 0;
 
-    auto result = astar(maze, start, end);
-    showPath(result, maze);
+    while (!close) {
+        auto start = randPosition(maze);
+        auto end = randPosition(maze);
+        auto result = astar(maze, start, end);
+        printf("\x1b[43m  \x1b[0m start: x=%i y=%i\n", start.y, start.x);
+        printf("\x1b[45m  \x1b[0m end: x=%i y=%i\n", end.y, end.x);
+        showPath(result, maze, start, end);
+
+        scanf_s("%c", &input);
+        if (input == '0') {
+            close = true;
+        }
+        system("cls");
+    }
+    
     return 0;
 }
