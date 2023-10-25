@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
     bool close = false;
     char input = 0;
 
+    system("cls");
     while (!close) {
         auto start = randPosition(maze);
         auto end = randPosition(maze);
